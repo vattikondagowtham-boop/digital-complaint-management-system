@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Complaint System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-container" style="border-top: 4px solid var(--danger);">
+            <h2>Admin Portal Access</h2>
+            <div id="login-alert" class="alert alert-error"></div>
+
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label for="admin-username">Admin Username</label>
+                    <input type="text" id="admin-username" class="form-control" required placeholder="admin@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" class="form-control" required placeholder="admin123">
+                </div>
+                <button type="submit" class="btn" id="login-btn" style="background-color: var(--danger);">
+                    <span class="btn-text">Staff Login</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+            <div class="toggle-form">
+                <a href="index.html">← Back to User Portal</a>
+            </div>
+            <div style="margin-top:20px; text-align:center; font-size:12px; color:var(--text-muted);">
+                Default credentials: admin@gmail.com / admin123
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Always connect to backend on port 3000
+        let API_BASE = 'http://localhost:3000';
+        
+        // If running on a different machine or external IP, adjust the host
+        if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            API_BASE = `${window.location.protocol.startsWith('http') ? window.location.protocol : 'http:'}//${window.location.hostname}:${window.location.port || '3000'}`;
+        }
+        if (!API_BASE || API_BASE.includes('://:')) {
+            API_BASE = 'http://localhost:3000';
+        }
+
+        if (sessionStorage.getItem('admin_logged_in')) {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function showAlert(message) {
+            const el = document.getElementById('login-alert');
+            el.style.display = 'block';
+            el.textContent = message;
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        function setLoading(isLoading) {
+            const btn = document.getElementById('login-btn');
+            const text = btn.querySelector('.btn-text');
+            const loader = btn.querySelector('.loader');
+            if (isLoading) {
+                btn.disabled = true;
+                text.style.display = 'none';
+                loader.style.display = 'block';
+            } else {
+                btn.disabled = false;
+                text.style.display = 'block';
+                loader.style.display = 'none';
+            }
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            setLoading(true);
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    sessionStorage.setItem('admin_logged_in', 'true');
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    showAlert(data.message);
+                }
+            } catch (err) {
+                showAlert('Network error. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        }
+    </script>
+</body>
+
+</html>

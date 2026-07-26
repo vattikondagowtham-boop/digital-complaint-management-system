@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar" style="border-bottom: 2px solid var(--danger);">
+        <div class="navbar-brand">🛡️ Admin Portal</div>
+        <div class="navbar-links">
+            <span id="live-clock" style="color: var(--text-muted); margin-right: 15px; font-weight: bold;"></span>
+            <span style="color: var(--text-muted); margin-right: 15px;">Admin User</span>
+            <a href="#" onclick="logoutBtn(); return false;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <!-- Dashboard Header & Export -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2>Dashboard Analytics</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-sm" style="background-color: var(--success); width: auto;"
+                    onclick="exportReport()">⬇️ Export Report (CSV)</button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card" style="border-top: 4px solid var(--primary)">
+                <div class="stat-icon">📄</div>
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-label">Total Complaints</div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid var(--success)">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="stat-users">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid var(--warning)">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value" id="stat-pending">0</div>
+                <div class="stat-label">Pending Complaints</div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
+                <div class="stat-icon">⚙️</div>
+                <div class="stat-value" id="stat-progress">0</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #10b981;">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="stat-resolved">0</div>
+                <div class="stat-label">Resolved Complaints</div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid var(--danger)">
+                <div class="stat-icon">🗑️</div>
+                <div class="stat-value" id="stat-deleted">0</div>
+                <div class="stat-label">Deleted Complaints</div>
+            </div>
+        </div>
+
+        <!-- Active Users & Feed -->
+        <div class="charts-grid" style="grid-template-columns: 2fr 1fr;">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Top 5 Most Active Users</div>
+                </div>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Total Submissions</th>
+                            <th>Last Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-users-body">
+                        <tr>
+                            <td colspan="3" style="text-align:center;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Recent Activity Feed</div>
+                </div>
+                <ul class="activity-feed" id="activity-feed">
+                    <li>Loading...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin: 20px 0;"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;">All User Complaints</h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label style="font-weight: bold; font-size: 14px;">Date Filter:</label>
+                <input type="date" id="filter-from" class="form-control" style="width: auto; padding: 4px 8px;">
+                <span style="font-size: 14px;">to</span>
+                <input type="date" id="filter-to" class="form-control" style="width: auto; padding: 4px 8px;">
+                <button class="btn btn-outline btn-sm" onclick="applyDateFilter()">Filter</button>
+                <button class="btn btn-outline btn-sm" onclick="resetDateFilter()">Reset</button>
+            </div>
+        </div>
+
+        <div class="card table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Complaint Detail</th>
+                        <th>Location</th>
+                        <th>Submitted On</th>
+                        <th>Image</th>
+                        <th>Status</th>
+                        <th>Tracking</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-table-body">
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-muted);">Loading complaints...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for viewing full image (Optional simple version) -->
+    <div id="imageModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+        <span onclick="closeModal()"
+            style="position:absolute; top:20px; right:30px; font-size:40px; color:white; cursor:pointer;">&times;</span>
+        <img id="modalImg" style="max-height:80vh; max-width:90vw; border-radius:8px;">
+    </div>
+
+    <!-- Modal for tracking history -->
+    <div id="trackingModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background: var(--surface); width: 600px; max-width: 90%; border-radius: 12px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Tracking History</h3>
+                <span onclick="closeTrackingModal()" style="font-size:24px; cursor:pointer;">&times;</span>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Coordinates</th>
+                            <th>Map</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tracking-history-body">
+                        <tr>
+                            <td colspan="3" style="text-align: center;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for updating status -->
+    <div id="statusModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background: var(--surface); width: 400px; max-width: 90%; border-radius: 12px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Update Complaint Status</h3>
+                <span onclick="closeStatusModal()" style="font-size:24px; cursor:pointer;">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Select New Status:</label>
+                <select id="new-status-select" class="form-control" style="margin-bottom: 20px;">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+            <button class="btn" onclick="saveStatus()">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Admin Delete Confirmation Modal -->
+    <div id="adminDeleteModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+        <div
+            style="background: var(--surface); width: 400px; max-width: 90%; border-radius: 12px; padding: 24px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="margin-top: 0;">Are you sure?</h3>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">Are you sure you want to delete this complaint?
+                This action cannot be undone.</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeAdminDelete()">Cancel</button>
+                <button id="admin-confirm-delete-btn" class="btn" style="flex: 1; background-color: var(--danger);"
+                    onclick="executeAdminDelete()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Always connect to backend on port 3000
+        let API_BASE = 'http://localhost:3000';
+        
+        // If running on a different machine or external IP, adjust the host
+        if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            API_BASE = `${window.location.protocol.startsWith('http') ? window.location.protocol : 'http:'}//${window.location.hostname}:${window.location.port || '3000'}`;
+        }
+        if (!API_BASE || API_BASE.includes('://:')) {
+            API_BASE = 'http://localhost:3000';
+        }
+
+        if (!sessionStorage.getItem('admin_logged_in')) {
+            window.location.href = 'admin.html';
+        }
+
+        function logoutBtn() {
+            sessionStorage.removeItem('admin_logged_in');
+            window.location.href = 'admin.html';
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString('en-US', options);
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('live-clock').textContent = `${dateStr} | ${timeStr}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        let allComplaints = [];
+
+        async function fetchAllComplaints() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/complaints`);
+                const data = await res.json();
+
+                if (data.success) {
+                    allComplaints = data.complaints;
+                    renderComplaints(allComplaints);
+                } else {
+                    document.getElementById('admin-table-body').innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">No complaints found.</td></tr>';
+                }
+            } catch (err) {
+                console.error("Failed to load complaints", err);
+            }
+        }
+
+        function renderComplaints(complaints) {
+            const tbody = document.getElementById('admin-table-body');
+            if (complaints.length > 0) {
+                tbody.innerHTML = complaints.map(c => `
+                    <tr>
+                        <td>#${c.id}</td>
+                        <td>
+                            <div><strong>${c.user_name || 'N/A'}</strong></div>
+                            <div style="font-size:12px; color:var(--text-muted);">${c.user_email || ''}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600; margin-bottom:4px;">${c.title}</div>
+                            <div style="font-size:13px; color:var(--text-muted); max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.description}">${c.description}</div>
+                        </td>
+                        <td>
+                            <div style="font-size:13px; max-width:200px;">${c.address}</div>
+                            <div style="margin-top:6px;">
+                                <a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="btn btn-outline btn-sm" style="display:inline-block; text-decoration:none;">🗺️ Map</a>
+                            </div>
+                        </td>
+                        <td>
+                            ${new Date(c.created_at).toLocaleDateString('en-GB')}
+                        </td>
+                        <td>
+                            ${c.image ? `<img src="${c.image}" style="width:60px; height:60px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="openModal('${c.image}')">` : '<span style="color:var(--text-muted); font-size:13px;">No App Image</span>'}
+                        </td>
+                        <td>
+                            <span class="badge ${getStatusClass(c.status)}" id="status-badge-${c.id}">${c.status}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="viewTracking(${c.id})">📍 History</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="openStatusModal(${c.id}, '${c.status}')">✏️ Update</button>
+                            <button class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger); margin-top: 5px;" onclick="confirmAdminDelete(${c.id})">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">No complaints found.</td></tr>';
+            }
+        }
+
+        function applyDateFilter() {
+            const fromDate = document.getElementById('filter-from').value;
+            const toDate = document.getElementById('filter-to').value;
+
+            if (!fromDate && !toDate) return renderComplaints(allComplaints);
+
+            const filtered = allComplaints.filter(c => {
+                const cDate = new Date(c.created_at).setHours(0, 0, 0, 0);
+                const from = fromDate ? new Date(fromDate).setHours(0, 0, 0, 0) : -Infinity;
+                const to = toDate ? new Date(toDate).setHours(23, 59, 59, 999) : Infinity;
+                return cDate >= from && cDate <= to;
+            });
+            renderComplaints(filtered);
+        }
+
+        function resetDateFilter() {
+            document.getElementById('filter-from').value = '';
+            document.getElementById('filter-to').value = '';
+            renderComplaints(allComplaints);
+        }
+
+        let currentUpdateId = null;
+
+        function openStatusModal(id, currentStatus) {
+            currentUpdateId = id;
+            document.getElementById('new-status-select').value = currentStatus;
+            document.getElementById('statusModal').style.display = 'flex';
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').style.display = 'none';
+            currentUpdateId = null;
+        }
+
+        async function saveStatus() {
+            if (!currentUpdateId) return;
+            const newStatus = document.getElementById('new-status-select').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/complaints/${currentUpdateId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeStatusModal();
+                    fetchAllComplaints(); // Refresh list to update badge classes instantly
+                } else {
+                    alert('Error updating status');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        }
+
+        function getStatusClass(status) {
+            if (!status) return 'badge-pending';
+            if (status.toLowerCase().includes('pending')) return 'badge-pending';
+            if (status.toLowerCase().includes('progress')) return 'badge-progress';
+            if (status.toLowerCase().includes('resolved')) return 'badge-resolved';
+            return 'badge-pending';
+        }
+
+        let adminDeleteId = null;
+
+        function confirmAdminDelete(id) {
+            adminDeleteId = id;
+            document.getElementById('adminDeleteModal').style.display = 'flex';
+        }
+
+        function closeAdminDelete() {
+            document.getElementById('adminDeleteModal').style.display = 'none';
+            adminDeleteId = null;
+        }
+
+        async function executeAdminDelete() {
+            if (!adminDeleteId) return;
+            const btn = document.getElementById('admin-confirm-delete-btn');
+            btn.innerHTML = 'Deleting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/complaints/${adminDeleteId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    fetchAllComplaints(); // Refresh table
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('Network error during deletion.');
+            } finally {
+                closeAdminDelete();
+                btn.innerHTML = 'Yes, Delete';
+                btn.disabled = false;
+            }
+        }
+
+        function openModal(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        async function viewTracking(complaintId) {
+            document.getElementById('trackingModal').style.display = 'flex';
+            const tbody = document.getElementById('tracking-history-body');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Loading...</td></tr>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/complaints/${complaintId}/tracking`);
+                const data = await res.json();
+                if (data.success && data.tracking.length > 0) {
+                    tbody.innerHTML = data.tracking.map(t => `
+                        <tr>
+                            <td>${new Date(t.timestamp).toLocaleString()}</td>
+                            <td>${t.latitude.toFixed(5)}, ${t.longitude.toFixed(5)}</td>
+                            <td><a href="https://www.google.com/maps?q=${t.latitude},${t.longitude}" target="_blank" style="color: var(--primary);">View Map</a></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No tracking history available yet.</td></tr>';
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--danger);">Error loading data.</td></tr>';
+            }
+        }
+
+        function closeTrackingModal() {
+            document.getElementById('trackingModal').style.display = 'none';
+        }
+
+        // ================= Analytics Logic =================
+        let charts = {};
+
+        function animateValue(id, start, end, duration) {
+            if (start === end) return document.getElementById(id).textContent = end;
+            let current = start;
+            const range = end - start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            const obj = document.getElementById(id);
+            const timer = setInterval(function () {
+                current += increment;
+                obj.textContent = current;
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        async function fetchAnalytics() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/analytics`);
+                const data = await res.json();
+                if (data.success) {
+                    // Update Stats
+                    animateValue('stat-total', 0, data.stats.totalComplaints, 1000);
+                    animateValue('stat-users', 0, data.stats.totalUsers, 1000);
+                    animateValue('stat-pending', 0, data.stats.pending, 1000);
+                    animateValue('stat-progress', 0, data.stats.inProgress, 1000);
+                    animateValue('stat-resolved', 0, data.stats.resolved, 1000);
+                    animateValue('stat-deleted', 0, data.stats.deleted, 1000);
+
+                    renderTopUsers(data.topUsers);
+                    renderActivityFeed(data.activityFeed);
+                    window.currentAnalyticsData = data;
+                }
+            } catch (err) {
+                console.error("Failed to load analytics", err);
+            }
+        }
+
+        function renderTopUsers(users) {
+            const tbody = document.getElementById('top-users-body');
+            if (users.length === 0) return tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No data</td></tr>';
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td><strong>${u.username}</strong></td>
+                    <td>${u.total_complaints}</td>
+                    <td>${new Date(u.last_activity).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderActivityFeed(activities) {
+            const list = document.getElementById('activity-feed');
+            if (activities.length === 0) return list.innerHTML = '<li style="color:var(--text-muted);">No recent activity.</li>';
+            list.innerHTML = activities.map(a => {
+                const timeStr = new Date(a.timestamp).toLocaleString();
+                let icon = '🔔', color = 'var(--primary)';
+                if (a.action.includes('submitted')) { icon = '📝'; color = 'var(--success)'; }
+                if (a.action.includes('deleted')) { icon = '🗑️'; color = 'var(--danger)'; }
+                if (a.action.includes('registered')) { icon = '👋'; color = '#3b82f6'; }
+                if (a.action.includes('status')) { icon = '⚡'; color = 'var(--warning)'; }
+
+                return `
+                <li class="activity-item">
+                    <div class="activity-icon" style="color: ${color}; background-color: rgba(255,255,255,0.05);">${icon}</div>
+                    <div class="activity-details">
+                        <div class="activity-text">${a.action}</div>
+                        <div class="activity-time">${timeStr}</div>
+                    </div>
+                </li>
+            `}).join('');
+        }
+
+        function exportReport() {
+            if (!window.currentAnalyticsData) return alert("Data not loaded yet!");
+            const d = window.currentAnalyticsData;
+
+            let csv = 'ANALYTICS SUMMARY REPORT\\n\\n';
+            csv += 'METRIC,VALUE\\n';
+            csv += `Total Complaints,${d.stats.totalComplaints}\\n`;
+            csv += `Total Users,${d.stats.totalUsers}\\n`;
+            csv += `Pending,${d.stats.pending}\\n`;
+            csv += `In Progress,${d.stats.inProgress}\\n`;
+            csv += `Resolved,${d.stats.resolved}\\n`;
+            csv += `Deleted,${d.stats.deleted}\\n\\n`;
+
+            csv += 'CATEGORIES\\nCategory,Submissions\\n';
+            d.categories.forEach(c => csv += `${c.category},${c.count}\\n`);
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'dtms_analytics_report.csv');
+            a.click();
+        }
+
+        // Fetch on load
+        fetchAnalytics();
+        fetchAllComplaints();
+    </script>
+</body>
+
+</html>

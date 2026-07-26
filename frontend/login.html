@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Complaint System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-container">
+            <h2>User Login</h2>
+            <div id="login-alert" class="alert"></div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" class="form-control" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" class="form-control" required
+                        placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn" id="login-btn">
+                    <span class="btn-text">Sign In</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+            <div class="toggle-form"
+                style="display:flex; justify-content: space-between; align-items: center; margin-top:20px;">
+                <a href="forgot-password.html" style="font-size:13px;">Forgot Password?</a>
+                <a href="register.html">Register here</a>
+            </div>
+            <div class="login-note" style="margin-top:16px; font-size:13px; color:var(--text-muted);">
+                Demo user: <strong>user@example.com</strong> / <strong>user123</strong>
+            </div>
+            <div class="toggle-form" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border);">
+                <a href="admin.html" style="color: var(--text-muted);">Staff/Admin Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Always connect to backend on port 3000
+        let API_BASE = 'http://localhost:3000';
+        
+        // If running on a different machine or external IP, adjust the host
+        if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            API_BASE = `${window.location.protocol.startsWith('http') ? window.location.protocol : 'http:'}//${window.location.hostname}:${window.location.port || '3000'}`;
+        }
+        if (!API_BASE || API_BASE.includes('://:')) {
+            API_BASE = 'http://localhost:3000';
+        }
+
+        if (localStorage.getItem('user')) window.location.href = 'complaint.html';
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.querySelector('.loader').style.display = 'block';
+            btn.querySelector('.btn-text').style.display = 'none';
+
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            console.log('📋 Form Input Values:');
+            console.log('  Email:', `"${email}"`, `Length: ${email.length}`);
+            console.log('  Password:', `"${password}"`, `Length: ${password.length}`);
+            console.log('📍 API_BASE:', API_BASE);
+
+            try {
+                const loginUrl = `${API_BASE}/api/login`;
+                const payload = JSON.stringify({ email: email, password: password });
+                
+                console.log('📤 Sending to:', loginUrl);
+                console.log('📦 Payload:', payload);
+                
+                const res = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload
+                });
+                
+                console.log('📥 Response Status:', res.status, res.statusText);
+                console.log('📥 Response Headers:', res.headers);
+                
+                const responseText = await res.text();
+                console.log('📥 Raw Response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('✅ Parsed JSON:', data);
+                } catch (parseErr) {
+                    console.error('❌ JSON Parse Error:', parseErr.message);
+                    throw new Error(`Server response is not valid JSON: ${responseText}`);
+                }
+
+                if (data.success) {
+                    console.log('✔️ Login successful! User ID:', data.user.id);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'complaint.html';
+                } else {
+                    console.log('❌ Login rejected. Message:', data.message);
+                    const alertEl = document.getElementById('login-alert');
+                    alertEl.className = 'alert alert-error';
+                    alertEl.textContent = `Error: ${data.message}`;
+                    alertEl.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('🔴 CATCH Error:', err.message);
+                console.error('🔴 Stack:', err.stack);
+                const alertEl = document.getElementById('login-alert');
+                alertEl.className = 'alert alert-error';
+                alertEl.style.display = 'block';
+                alertEl.textContent = `Error: ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.querySelector('.loader').style.display = 'none';
+                btn.querySelector('.btn-text').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>
