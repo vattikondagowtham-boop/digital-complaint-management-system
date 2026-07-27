@@ -7,7 +7,7 @@ A full-stack web application that enables users to register, submit, and track c
 - Secure User Registration & Login
 - Complaint Submission with Image Upload
 - Complaint Status Tracking
-- Address & Location Support
+- Address & Location Support 
 - Admin Dashboard for Complaint Management
 - Update Complaint Status
 - Responsive User Interface
