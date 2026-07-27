@@ -27,7 +27,7 @@ A full-stack web application that enables users to register, submit, and track c
 
 # Database:
 - SQLite
-
+  
 # Tools:
 - Git
 - GitHub
@@ -57,13 +57,9 @@ digital-complaint-management-system/
 │
 ├── package.json
 └── README.md
-
 --------
-
 #  Installation:
-
  Clone the Repository
- 
 bash
 git clone https://github.com/vattikondagowtham-boop/digital-complaint-management-system.git
 ------
@@ -72,33 +68,36 @@ bash
 npm install
 ------
 If using the backend separately:
-
 bash
 cd backend
 npm install
 
  # Run the Application
+# Application Screenshots
 
-bash
-node server.js
+# Login Page:
+![Login Page](login.png)
+---
 
-Open your browser and visit:
+# Registration Page:
+[Registration Page](register.png)
+---
 
-http://localhost:3000
+# Complaint Registration:
+[Complaint Registration](complaint.png)
+---
 
+# Admin Dashboard
+[Admin Dashboard](admin-dashboard.png)
 # Screenshots
-
 Add screenshots of:
-
 - Login Page
 - Registration Page
 - Complaint Submission
+- All users Complaints
 - Admin Dashboard
-
 ---
-
 # Skills Demonstrated
-
 - Full Stack Web Development
 - REST API Development
 - CRUD Operations
@@ -109,7 +108,6 @@ Add screenshots of:
 - Git & GitHub Version Control
 ------
 # Future Enhancements
-
 - JWT Authentication
 - Email Notifications
 - Role-Based Access Control
@@ -117,21 +115,13 @@ Add screenshots of:
 - Complaint Analytics Dashboard
 - PostgreSQL/MySQL Integration
 - Cloud Deployment
-
 ---
-
 # Developer
-
 "Vattikonda Gowtham"
-
 B.Tech Student | Aspiring Software Engineer
-
 GitHub: https://github.com/vattikondagowtham-boop
-
 ---
 
 # License
-
 This project was developed for educational and learning purposes.
-
 ---
