@@ -74,22 +74,16 @@ npm install
 
  # Run the Application
 # Application Screenshots
-
-# Login Page:
+# Login Page
 ![Login Page](login.png)
----
-
-# Registration Page:
-[Registration Page](register.png)
----
-
-# Complaint Registration:
-[Complaint Registration](complaint.png)
----
-
+# Registration Page
+![Registration Page](register.png)
+# Complaint Registration
+![Complaint Registration](complaint.png)
+# All Complaints
+![All Complaints](Complaints.png)
 # Admin Dashboard
-[Admin Dashboard](admin-dashboard.png)
-# Screenshots
+![Admin Dashboard](Admindashboard.png)
 Add screenshots of:
 - Login Page
 - Registration Page
